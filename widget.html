@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: transparent;
+    overflow: hidden;
+    width: 100vw; height: 100vh;
+    border-radius: 12px;
+    -webkit-app-region: drag; /* drag para mover */
+    user-select: none;
+  }
+
+  .container {
+    width: 100%; height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(201,168,76,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+
+  video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: none;
+    border-radius: 12px;
+  }
+
+  .placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a0a2e, #0a1a2e, #0a2e1a);
+    background-size: 300% 300%;
+    animation: grad 6s ease infinite;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 6px;
+  }
+
+  @keyframes grad {
+    0%,100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+
+  .placeholder p {
+    font-family: -apple-system, sans-serif;
+    font-size: 11px;
+    color: rgba(201,168,76,0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* overlay afirmación */
+  .aff-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(6,6,8,0.88), rgba(13,11,18,0.92));
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 14px;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+    pointer-events: none;
+  }
+
+  .aff-overlay.show { opacity: 1; }
+
+  .aff-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    color: #c9a84c;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.8;
+  }
+
+  .aff-line { width: 24px; height: 1px; background: #c9a84c; opacity: 0.4; margin: 4px auto; }
+
+  .aff-text {
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: #f0e8d0;
+    text-align: center;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* botón cerrar mini */
+  .close-btn {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+    font-size: 9px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-app-region: no-drag;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  body:hover .close-btn { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="placeholder" id="placeholder">
+    <p>◆ Mind Movie</p>
+    <p style="font-size:9px; opacity:0.5;">Abre configuración</p>
+  </div>
+  <video id="vid" autoplay loop></video>
+  <audio id="aud" loop></audio>
+  <div class="aff-overlay" id="affOverlay">
+    <div class="aff-label">Afirmación</div>
+    <div class="aff-line"></div>
+    <div class="aff-text" id="affText">Soy abundancia en movimiento</div>
+  </div>
+  <div class="close-btn" onclick="hideWidget()">✕</div>
+</div>
+
+<script>
+  const { ipcRenderer } = require('electron');
+
+  let mode = 'video';
+  let autoTimer = null;
+  let toggle = true;
+  let intervalSecs = 60;
+
+  // ── RECIBIR COMANDOS ──
+  ipcRenderer.on('load-video', (e, filePath) => {
+    const vid = document.getElementById('vid');
+    vid.src = 'file://' + filePath;
+    vid.style.display = 'block';
+    document.getElementById('placeholder').style.display = 'none';
+    vid.play().catch(()=>{});
+  });
+
+  ipcRenderer.on('load-audio', (e, filePath) => {
+    const aud = document.getElementById('aud');
+    aud.src = 'file://' + filePath;
+    aud.play().catch(()=>{});
+  });
+
+  ipcRenderer.on('set-volumes', (e, {video, audio}) => {
+    document.getElementById('vid').volume = video / 100;
+    document.getElementById('aud').volume = audio / 100;
+  });
+
+  ipcRenderer.on('set-mode', (e, m) => {
+    mode = m;
+    clearInterval(autoTimer);
+    if (m === 'video')      showVideo();
+    if (m === 'afirmacion') showAff();
+    if (m === 'auto') {
+      toggle = true; showVideo();
+      autoTimer = setInterval(() => {
+        toggle ? showAff() : showVideo();
+        toggle = !toggle;
+      }, intervalSecs * 1000);
+    }
+  });
+
+  ipcRenderer.on('set-interval', (e, secs) => {
+    intervalSecs = secs;
+    if (mode === 'auto') ipcRenderer.emit('set-mode', null, 'auto');
+  });
+
+  ipcRenderer.on('set-affirmation', (e, text) => {
+    document.getElementById('affText').textContent = text;
+  });
+
+  ipcRenderer.on('set-size', (e, size) => {
+    // tamaño ya lo maneja main.js en la ventana
+  });
+
+  function showVideo() {
+    document.getElementById('affOverlay').classList.remove('show');
+  }
+
+  function showAff() {
+    document.getElementById('affOverlay').classList.add('show');
+  }
+
+  function hideWidget() {
+    document.getElementById('vid').pause();
+    document.getElementById('aud').pause();
+    ipcRenderer.send('toggle-widget');
+  }
+</script>
+</body>
+</html>
