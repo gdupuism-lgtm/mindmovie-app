@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERIORCENTER · Configuración</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Raleway:wght@200;300;400;600&display=swap');
+
+  :root {
+    --gold: #c9a84c; --gold-light: #f0d080; --gold-dim: #7a6030;
+    --dark: #060608; --surface: #13111a; --border: rgba(201,168,76,0.2);
+    --text: #e8dfc8; --muted: #7a7060;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Raleway', sans-serif;
+    font-weight: 300;
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  /* TITLEBAR */
+  .titlebar {
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--border);
+    padding: 0.9rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .logo { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--gold); }
+
+  .close-btn {
+    -webkit-app-region: no-drag;
+    background: none; border: none;
+    color: var(--muted); font-size: 1rem;
+    cursor: pointer; transition: color 0.2s;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .close-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  /* CONTENT */
+  .content { padding: 1.2rem 1.5rem; -webkit-app-region: no-drag; }
+
+  .section { margin-bottom: 1.4rem; }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem; letter-spacing: 0.3em;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background: linear-gradient(to right, var(--gold-dim), transparent); }
+
+  /* UPLOAD */
+  .upload-btn {
+    width: 100%; padding: 0.8rem;
+    background: rgba(0,0,0,0.3);
+    border: 1px dashed var(--gold-dim);
+    border-radius: 8px;
+    color: var(--muted); font-family: 'Raleway', sans-serif;
+    font-size: 0.7rem; letter-spacing: 0.08em;
+    cursor: pointer; transition: all 0.2s;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .upload-btn:hover { border-color: var(--gold); color: var(--text); background: rgba(201,168,76,0.05); }
+  .upload-btn input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+  .loaded-tag {
+    display: none; align-items: center; gap: 6px;
+    margin-top: 0.4rem;
+    font-size: 0.65rem; color: var(--gold-light);
+  }
+  .loaded-tag.show { display: flex; }
+  .dot { width:6px; height:6px; border-radius:50%; background:#4caf82; }
+
+  /* SLIDERS */
+  .slider-row { display:flex; align-items:center; gap:10px; margin-bottom:0.6rem; }
+  .slider-label { font-size:0.63rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; width:65px; flex-shrink:0; }
+  input[type=range] {
+    flex:1; -webkit-appearance:none; height:2px;
+    background: linear-gradient(to right, var(--gold) var(--val,70%), rgba(255,255,255,0.1) var(--val,70%));
+    border-radius:2px; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:12px; height:12px;
+    border-radius:50%; background:var(--gold);
+    box-shadow:0 0 8px rgba(201,168,76,0.4); cursor:pointer;
+  }
+  .slider-val { font-size:0.63rem; color:var(--gold); width:24px; text-align:right; }
+
+  /* PILLS */
+  .pill-group { display:flex; gap:6px; flex-wrap:wrap; }
+  .pill {
+    padding:0.28rem 0.7rem; border-radius:100px;
+    border:1px solid var(--border); font-family:'Raleway',sans-serif;
+    font-size:0.62rem; letter-spacing:0.08em; color:var(--muted);
+    cursor:pointer; transition:all 0.2s; background:transparent;
+    text-transform:uppercase;
+  }
+  .pill:hover { border-color:var(--gold-dim); color:var(--text); }
+  .pill.active { border-color:var(--gold); color:var(--gold); background:rgba(201,168,76,0.08); }
+
+  /* MODE */
+  .mode-toggle {
+    display:flex; background:rgba(0,0,0,0.3);
+    border-radius:8px; padding:3px;
+    border:1px solid var(--border); margin-bottom:0.8rem;
+  }
+  .mode-btn {
+    flex:1; padding:0.45rem; border:none; background:transparent;
+    color:var(--muted); font-family:'Raleway',sans-serif;
+    font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
+    cursor:pointer; border-radius:6px; transition:all 0.2s;
+  }
+  .mode-btn.active { background:rgba(201,168,76,0.12); color:var(--gold); }
+
+  /* AFFIRMATIONS */
+  .aff-list { display:flex; flex-direction:column; gap:5px; }
+  .aff-item {
+    display:flex; align-items:center; gap:8px;
+    background:rgba(0,0,0,0.2); border-radius:6px;
+    padding:0.45rem 0.7rem; border:1px solid transparent;
+    cursor:pointer; transition:border-color 0.2s;
+  }
+  .aff-item:hover { border-color:var(--border); }
+  .aff-item.active { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.05); }
+  .aff-num { font-family:'Cinzel',serif; font-size:0.5rem; color:var(--gold-dim); flex-shrink:0; }
+  .aff-item span { font-size:0.66rem; color:var(--text); font-style:italic; line-height:1.4; }
+
+  /* INTERVAL */
+  .row { display:flex; align-items:center; gap:10px; margin-top:0.5rem; }
+  .row label { font-size:0.63rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
+  select {
+    background:rgba(0,0,0,0.4); border:1px solid var(--border);
+    color:var(--text); font-family:'Raleway',sans-serif; font-size:0.63rem;
+    padding:0.28rem 0.6rem; border-radius:6px; cursor:pointer; outline:none;
+  }
+
+  /* STATUS */
+  .status {
+    padding: 0.6rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display:flex; align-items:center; gap:8px;
+    position: sticky; bottom:0;
+    background: var(--surface);
+  }
+  .status-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); }
+  .status-dot.on { background:#4caf82; animation:blink 2s ease infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .status-text { font-size:0.6rem; color:var(--muted); letter-spacing:0.1em; }
+
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="logo">ERIORCENTER · Mind Movie</div>
+  <button class="close-btn" onclick="closeSettings()">✕</button>
+</div>
+
+<div class="content">
+
+  <!-- VIDEO -->
+  <div class="section">
+    <div class="section-title">Mind Movie</div>
+    <label class="upload-btn">
+      🎬 &nbsp; Cargar Mind Movie (.mp4)
+      <input type="file" accept="video/*" id="videoInput">
+    </label>
+    <div class="loaded-tag" id="videoTag">
+      <div class="dot"></div><span id="videoName">—</span>
+    </div>
+  </div>
+
+  <!-- AUDIO -->
+  <div class="section">
+    <div class="section-title">Audio Binaural</div>
+    <label class="upload-btn">
+      🎧 &nbsp; Cargar Audio ERIORCENTER
+      <input type="file" accept="audio/*" id="audioInput">
+    </label>
+    <div class="loaded-tag" id="audioTag">
+      <div class="dot"></div><span id="audioName">—</span>
+    </div>
+    <div style="margin-top:1rem;">
+      <div class="slider-row">
+        <span class="slider-label">Video</span>
+        <input type="range" id="videoVol" min="0" max="100" value="70" style="--val:70%">
+        <span class="slider-val" id="videoVolVal">70</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Binaural</span>
+        <input type="range" id="audioVol" min="0" max="100" value="50" style="--val:50%">
+        <span class="slider-val" id="audioVolVal">50</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODO -->
+  <div class="section">
+    <div class="section-title">Modo</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btnVideo"  onclick="setMode('video')">◉ Video</button>
+      <button class="mode-btn"        id="btnAff"    onclick="setMode('afirmacion')">✦ Afirmación</button>
+      <button class="mode-btn"        id="btnAuto"   onclick="setMode('auto')">↻ Alterno</button>
+    </div>
+    <div class="row">
+      <label>Intervalo</label>
+      <select id="intervalSel">
+        <option value="30">30 seg</option>
+        <option value="60" selected>1 min</option>
+        <option value="120">2 min</option>
+        <option value="300">5 min</option>
+        <option value="600">10 min</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TAMAÑO -->
+  <div class="section">
+    <div class="section-title">Tamaño del widget</div>
+    <div class="pill-group">
+      <button class="pill" onclick="setSize('small')">Pequeño</button>
+      <button class="pill active" onclick="setSize('medium')">Mediano</button>
+      <button class="pill" onclick="setSize('large')">Grande</button>
+    </div>
+  </div>
+
+  <!-- POSICIÓN -->
+  <div class="section">
+    <div class="section-title">Posición en pantalla</div>
+    <div class="pill-group">
+      <button class="pill" onclick="setPos('tl')">↖ Arriba izq</button>
+      <button class="pill active" onclick="setPos('tr')">↗ Arriba der</button>
+      <button class="pill" onclick="setPos('bl')">↙ Abajo izq</button>
+      <button class="pill" onclick="setPos('br')">↘ Abajo der</button>
+    </div>
+  </div>
+
+  <!-- AFIRMACIONES -->
+  <div class="section">
+    <div class="section-title">Afirmaciones</div>
+    <div class="aff-list">
+      <div class="aff-item active" onclick="selectAff(this,'Soy abundancia en movimiento')">
+        <span class="aff-num">01</span><span>Soy abundancia en movimiento</span>
+      </div>
+      <div class="aff-item" onclick="selectAff(this,'Mi mente crea mi realidad')">
+        <span class="aff-num">02</span><span>Mi mente crea mi realidad</span>
+      </div>
+      <div class="aff-item" onclick="selectAff(this,'Merezco todo lo que deseo')">
+        <span class="aff-num">03</span><span>Merezco todo lo que deseo</span>
+      </div>
+      <div class="aff-item" onclick="selectAff(this,'Fluyo con la vida en perfecta armonía')">
+        <span class="aff-num">04</span><span>Fluyo con la vida en perfecta armonía</span>
+      </div>
+      <div class="aff-item" onclick="selectAff(this,'Mi subconsciente trabaja para mí siempre')">
+        <span class="aff-num">05</span><span>Mi subconsciente trabaja para mí siempre</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="status">
+  <div class="status-dot" id="statusDot"></div>
+  <span class="status-text" id="statusText">Widget inactivo · Carga tu Mind Movie</span>
+</div>
+
+<script>
+  const { ipcRenderer, shell } = require('electron');
+
+  // ── VIDEO ──
+  document.getElementById('videoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    ipcRenderer.send('set-video', file.path);
+    document.getElementById('videoTag').classList.add('show');
+    document.getElementById('videoName').textContent = file.name;
+    setStatus('▶ Reproduciendo · ' + file.name, true);
+  });
+
+  // ── AUDIO ──
+  document.getElementById('audioInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    ipcRenderer.send('set-audio', file.path);
+    document.getElementById('audioTag').classList.add('show');
+    document.getElementById('audioName').textContent = file.name;
+  });
+
+  // ── VOLÚMENES ──
+  function sendVolumes() {
+    ipcRenderer.send('set-volumes', {
+      video: parseInt(document.getElementById('videoVol').value),
+      audio: parseInt(document.getElementById('audioVol').value)
+    });
+  }
+
+  document.getElementById('videoVol').addEventListener('input', function() {
+    this.style.setProperty('--val', this.value + '%');
+    document.getElementById('videoVolVal').textContent = this.value;
+    sendVolumes();
+  });
+
+  document.getElementById('audioVol').addEventListener('input', function() {
+    this.style.setProperty('--val', this.value + '%');
+    document.getElementById('audioVolVal').textContent = this.value;
+    sendVolumes();
+  });
+
+  // ── MODO ──
+  function setMode(m) {
+    ['btnVideo','btnAff','btnAuto'].forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById({video:'btnVideo',afirmacion:'btnAff',auto:'btnAuto'}[m]).classList.add('active');
+    ipcRenderer.send('set-mode', m);
+  }
+
+  document.getElementById('intervalSel').addEventListener('change', function() {
+    ipcRenderer.send('set-interval', parseInt(this.value));
+  });
+
+  // ── TAMAÑO ──
+  function setSize(s) {
+    document.querySelectorAll('.pill').forEach(p => {
+      if(['Pequeño','Mediano','Grande'].includes(p.textContent.trim())) p.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    ipcRenderer.send('set-size', s);
+  }
+
+  // ── POSICIÓN ──
+  function setPos(p) {
+    ipcRenderer.send('set-position', p);
+  }
+
+  // ── AFIRMACIONES ──
+  function selectAff(el, text) {
+    document.querySelectorAll('.aff-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    ipcRenderer.send('set-affirmation', text);
+  }
+
+  // ── STATUS ──
+  function setStatus(msg, on) {
+    document.getElementById('statusText').textContent = msg;
+    document.getElementById('statusDot').classList.toggle('on', !!on);
+  }
+
+  // ── CERRAR ──
+  function closeSettings() {
+    ipcRenderer.send('close-settings');
+  }
+</script>
+</body>
+</html>
